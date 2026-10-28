@@ -32,6 +32,10 @@
 
 1. Program logic lives in the library; main.rs is just a thin entry point. This gives us an opportunity to expose our application logic in a single convenient location, while ensuring that the orchestrator of our application uses only what is needed.
 
+2. Logic regarding storage operations should be isolated from application/business logic. This gives flexibility to our application in regards to operating on data without regard to where the data came from. Enforces separation of concerns.
+
+
 ## Open Questions:
 - What does deleting a project mean?
 - Where do data files live on each OS?
+- Storage is responsible for reading/writing data to files. What is responsible for coordinating session data and storage reading/writing?

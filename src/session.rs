@@ -2,6 +2,7 @@ pub enum SessionErrorType {
     InvalidTimeBounds,
 }
 
+#[derive(Debug)]
 pub struct SessionData {
     id: u32,
     start: u64,
@@ -15,14 +16,25 @@ pub enum Session {
 }
 
 impl SessionData {
-    pub fn validation(self) -> Session {
-        let bad_time_bounds = self.end.is_some_and(|end| end < self.start);
+    pub fn new(id: u32, start: u64, end: Option<u64>, project_id: Option<u32>) -> Session {
+        let data = SessionData {
+            id,
+            start,
+            end,
+            project_id,
+        };
+
+        SessionData::validation(data)
+    }
+
+    fn validation(data: SessionData) -> Session {
+        let bad_time_bounds = data.end.is_some_and(|end| end < data.start);
 
         if bad_time_bounds {
-            return Session::Error(self, SessionErrorType::InvalidTimeBounds);
+            return Session::Error(data, SessionErrorType::InvalidTimeBounds);
         }
 
-        Session::Success(self)
+        Session::Success(data)
     }
 }
 
@@ -32,26 +44,14 @@ mod tests {
 
     #[test]
     fn success_including_all_data() {
-        let session_data = SessionData {
-            id: 1,
-            start: 19091009,
-            end: Some(19091010),
-            project_id: Some(2),
-        };
-        let session: Session = session_data.validation();
+        let session: Session = SessionData::new(1, 19091009, Some(19091010), Some(2));
 
         assert!(matches!(session, Session::Success(_)));
     }
 
     #[test]
     fn error_end_before_start() {
-        let session_data = SessionData {
-            id: 1,
-            start: 19091009,
-            end: Some(19091008),
-            project_id: Some(2),
-        };
-        let session: Session = session_data.validation();
+        let session: Session = SessionData::new(1, 19091009, Some(19091008), Some(2));
 
         assert!(matches!(
             session,
@@ -61,26 +61,14 @@ mod tests {
 
     #[test]
     fn sucess_missing_end() {
-        let session_data = SessionData {
-            id: 1,
-            start: 19091009,
-            end: None,
-            project_id: Some(2),
-        };
-        let session: Session = session_data.validation();
+        let session: Session = SessionData::new(1, 19091009, None, Some(2));
 
         assert!(matches!(session, Session::Success(_)));
     }
 
     #[test]
     fn success_same_start_end() {
-        let session_data = SessionData {
-            id: 1,
-            start: 19091009,
-            end: Some(19091009),
-            project_id: Some(2),
-        };
-        let session: Session = session_data.validation();
+        let session: Session = SessionData::new(1, 19091009, Some(19091009), Some(2));
 
         assert!(matches!(session, Session::Success(_)));
     }
