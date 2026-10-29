@@ -12,6 +12,8 @@
 
 5. Timestamps stored in UTC; converted to local time only for display. Keeping a timezone independent timestamp is standard for stored data and helpful for when situations come up when a users local timezone may change. However, showing users the UTC timestamp isn't particularly helpful for them, so showing them a local representation of their time will be necessary.
 
+6. If no file exists for session data while trying to read from it, one should be created. Storage is singularly responsible for reading/writing data to files and can return an empty list of sessions to its caller to indicate no sessions exist while now having a file for them. Separate functions should exist for reading and writing to adhere to separation of concerns.
+
 ## Validation
 
 1. A second clock-in while one is open is refused, with an explanation. Creating conflicting open clock ins should not be allowed for reasons of management clarity.
@@ -21,6 +23,10 @@
 3. Open sessions are allowed. Open sessions are defined as sessions with a valid clock in timestamp, but no clock out timestamp. Open sessions allow for operations on incompleted data for purposes of retrieving which session may be "active".
 
 4. Every session is created via validation. Valid sessions are created when all data follows the rules that govern them. Invalid sessions are kept, not dropped, as an error variant including a cause. This allows reports to flag time periods and give indications on why validation failed.
+
+5. Session validation rules will exist in a single location inside a sessions module. This should allow us to easily maintain and access these rules from anywhere in our application that needs them.
+
+6. When determining what id should be used for a new row, default to the next greatest integer in the file. This will ensure uniqueness and avoid collisions with new id values.
 
 ## Reporting
 
@@ -34,8 +40,10 @@
 
 2. Logic regarding storage operations should be isolated from application/business logic. This gives flexibility to our application in regards to operating on data without regard to where the data came from. Enforces separation of concerns.
 
+3. Commands services are responsible for coordinating storage actions and session rules. This service will be singularly responsible for the connection between what data exists, what can be done with it, and returning results to its caller.
 
 ## Open Questions:
 - What does deleting a project mean?
 - Where do data files live on each OS?
-- Storage is responsible for reading/writing data to files. What is responsible for coordinating session data and storage reading/writing?
+- What should reports do with rows that couldn't be parsed at all (no usable start time)?
+- How should project_id be linked by users
